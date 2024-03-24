@@ -29,7 +29,7 @@ int atoi(const char* nptr) {
   return x;
 }
 
-char* head_start_p = NULL;
+char* addr_n = NULL;
 void *malloc(size_t size) {
   // On native, malloc() will be called during initializaion of C runtime.
   // Therefore do not call panic() here, else it will yield a dead recursion:
@@ -39,12 +39,17 @@ void *malloc(size_t size) {
 // #endif
 //   return NULL;
 
-  if (head_start_p == NULL) {
-    head_start_p = heap.start;
+  if(addr_n == NULL){
+    addr_n = (void *)ROUNDUP(heap.start, 8);
   }
-  char* last_p = head_start_p;
-  head_start_p += size;
-  return last_p;
+  size = (size_t)ROUNDUP(size, 8);
+  char *addr_c = addr_n;
+  addr_n += size;
+  assert((uintptr_t)heap.start <= (uintptr_t)addr_n && (uintptr_t)addr_n < (uintptr_t)heap.end);
+  for (uint64_t *p = (uint64_t *)addr_c; p != (uint64_t *)addr_n; p ++) {
+    *p = 0;
+  }
+  return addr_c;
 }
 
 void free(void *ptr) {
