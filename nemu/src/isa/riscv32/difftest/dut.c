@@ -18,7 +18,38 @@
 #include "../local-include/reg.h"
 
 bool isa_difftest_checkregs(CPU_state *ref_r, vaddr_t pc) {
-  return false;
+   bool ret = true;
+  for (int i = 0; i < 32; i++) {
+    if (ref_r->gpr[i] != cpu.gpr[i]) {
+      ret = false;
+    }
+  }
+  if (ref_r->pc != cpu.pc) {
+    printf("pc,err!!");
+    ret = false;
+  }
+
+  if (ret != true) {
+    printf("---------------------------dut------------------------------\n");
+    for (size_t i = 0; i < 16; i++) {
+      printf("%s:%16d\t\t%s:%16d\n", reg_name(i), cpu.gpr[i], reg_name(i + 16), cpu.gpr[i + 16]);
+    }
+    printf("\tpc:%16d\n", cpu.pc);
+    printf("---------------------------ref------------------------------\n");
+    for (size_t i = 0; i < 16; i++) {
+      printf("%s:%16d\t\t%s:%16d\n", reg_name(i), ref_r->gpr[i], reg_name(i + 16), ref_r->gpr[i + 16]);
+    }
+    printf("\tpc:%16d\n", ref_r->pc);
+  }
+
+  return ret;
+
+  // for (int i = 0; i < 32; i++) {
+  //   /* 打印寄存器名称和内容 */
+  //   printf("%d:%s\t%lx\n", i, reg_name(i, 64), gpr(i));
+  // }
+  // /* pc 寄存器 */
+  // printf("%d:%s\t%lx\n", 33, "pc", cpu.pc);
 }
 
 void isa_difftest_attach() {
