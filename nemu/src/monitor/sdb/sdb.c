@@ -18,6 +18,7 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 #include "sdb.h"
+#include <memory/vaddr.h>
 
 static int is_batch_mode = false;
 
@@ -47,12 +48,16 @@ static int cmd_c(char *args) {
   return 0;
 }
 
-
+//cmd_q命令内容
 static int cmd_q(char *args) {
   return -1;
 }
 
 static int cmd_help(char *args);
+static int cmd_si(char *args);
+static int cmd_info(char *args);
+static int cmd_x(char *args);
+static int cmd_p(char *args);
 
 static struct {
   const char *name;
@@ -62,9 +67,12 @@ static struct {
   { "help", "Display information about all supported commands", cmd_help },
   { "c", "Continue the execution of the program", cmd_c },
   { "q", "Exit NEMU", cmd_q },
-
+ 
   /* TODO: Add more commands */
-
+  { "si", "Continue the execution in N step ,default 1", cmd_si },
+  { "info", "Print the info of the registers & watchpoints", cmd_info}, 
+  { "x", "Scan the memory from EXPR",cmd_x},
+  { "p", "Calculate the expression", cmd_p},
 };
 
 #define NR_CMD ARRLEN(cmd_table)
@@ -91,6 +99,86 @@ static int cmd_help(char *args) {
   }
   return 0;
 }
+
+//cmd_si命令内容
+static int cmd_si(char *args) {
+  
+  char *arg = strtok(NULL, " ");
+  int i;
+
+  if (arg == NULL) {
+    i = 1; 
+  }
+  else {
+    i = strtol(arg,NULL,10);
+    if (i < -1){
+      printf("Error,N should be greater or equal to -1\n");
+      return 0;
+    }
+  }
+  cpu_exec(i);  
+  return 0;
+}
+
+//cmd_info命令内容
+static int cmd_info(char *args) {
+  
+  char *arg = strtok(NULL, " ");
+
+  if (arg == NULL) {
+    printf("Error, please enter info r/w \n"); 
+  }
+  else if (strcmp(arg, "r")){
+    isa_reg_display();
+    }
+  else if (strcmp(arg, "w")){
+    isa_reg_display();
+    }
+  return 0;
+}
+
+//cmd_x命令内容
+static int cmd_x(char *args) {
+  
+  char *arg = strtok(NULL, " ");
+  int n = 0;
+  vaddr_t addr = 0;
+  
+  if (arg == NULL) {
+    printf("Error, Usage: x N EXPR \n"); 
+    return 0;
+  }
+  else {
+    n = strtol(arg,NULL,10);
+    arg=strtok(NULL," ");
+    if (arg == NULL){
+     printf("Error, Usage: x N EXPR \n"); 
+     return 0;
+    }
+    else {
+      addr = strtol(arg,NULL,16);
+    }
+  }
+  for (int i=0; i < n; i++){
+    printf("%08x:     %08x\n",addr,vaddr_read(addr,4));
+    addr = addr + 4;
+  }
+  return 0;
+}
+
+//cmd_p命令内容
+static int cmd_p(char *args) {
+  bool success = true;
+  word_t res = expr(args, &success);
+  if (!success){
+    printf("invalid expression\n");
+  }
+  else {
+    printf("%u\n",res);
+  }
+  return 0;
+}
+
 
 void sdb_set_batch_mode() {
   is_batch_mode = true;
@@ -125,7 +213,10 @@ void sdb_mainloop() {
     int i;
     for (i = 0; i < NR_CMD; i ++) {
       if (strcmp(cmd, cmd_table[i].name) == 0) {
-        if (cmd_table[i].handler(args) < 0) { return; }
+        if (cmd_table[i].handler(args) < 0) {
+           if (strcmp(cmd,"q") == 0) {nemu_state.state = NEMU_QUIT;}
+           return; 
+           }
         break;
       }
     }

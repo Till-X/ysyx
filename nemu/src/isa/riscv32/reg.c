@@ -24,6 +24,10 @@ const char *regs[] = {
 };
 
 void isa_reg_display() {
+  int reg_num = ARRLEN(regs);
+ for (int i = 0;i < reg_num; i++){
+   printf("%-8s%-#20x%-20d\n", regs[i], cpu.gpr[i], cpu.gpr[i]);
+ }
 }
 
 word_t isa_reg_str2val(const char *s, bool *success) {
