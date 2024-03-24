@@ -34,12 +34,12 @@ bool isa_difftest_checkregs(CPU_state *ref_r, vaddr_t pc) {
     for (size_t i = 0; i < 16; i++) {
       printf("%s:%16d\t\t%s:%16d\n", reg_name(i), cpu.gpr[i], reg_name(i + 16), cpu.gpr[i + 16]);
     }
-    printf("\tpc:%16d\n", cpu.pc);
+    printf("\tpc:%08x\n", cpu.pc);
     printf("---------------------------ref------------------------------\n");
     for (size_t i = 0; i < 16; i++) {
       printf("%s:%16d\t\t%s:%16d\n", reg_name(i), ref_r->gpr[i], reg_name(i + 16), ref_r->gpr[i + 16]);
     }
-    printf("\tpc:%16d\n", ref_r->pc);
+    printf("\tpc:%08x\n", ref_r->pc);
   }
 
   return ret;
