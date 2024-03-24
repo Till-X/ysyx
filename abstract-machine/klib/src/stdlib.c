@@ -39,10 +39,10 @@ void *malloc(size_t size) {
 // #endif
 //   return NULL;
 
-  if(addr_n == NULL){
+ if(addr_n == NULL){
     addr_n = (void *)ROUNDUP(heap.start, 8);
   }
-  size = (size_t)ROUNDUP(size, 8);
+  size  = (size_t)ROUNDUP(size, 8);
   char *addr_c = addr_n;
   addr_n += size;
   assert((uintptr_t)heap.start <= (uintptr_t)addr_n && (uintptr_t)addr_n < (uintptr_t)heap.end);
